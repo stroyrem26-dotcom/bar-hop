@@ -44,11 +44,9 @@ h1, h2, h3, p { margin: 0; }
 
 .layout { display: grid; grid-template-columns: minmax(0, .94fr) minmax(0, 1.06fr); gap: 24px; align-items: start; }
 .finder, .map-column { min-width: 0; }
-.search { display: flex; align-items: center; gap: 10px; color: var(--gold); background: var(--panel); border: 1px solid var(--line); padding: 0 14px; border-radius: 12px; }
-.search:focus-within { border-color: var(--gold); }
-.search svg { flex: 0 0 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
-.search input { width: 100%; min-height: 46px; outline: none; background: transparent; border: 0; color: var(--ivory); }
-.search input::placeholder { color: var(--muted); }
+.okrug-filter { display: grid; gap: 5px; color: var(--muted); font-size: 13px; }
+.okrug-filter select { width: 100%; min-height: 46px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ivory); font: inherit; font-size: 16px; cursor: pointer; }
+.okrug-filter select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 11px; }
 .chip, .quiet, .secondary, .primary, .read { border-radius: 9px; padding: 8px 12px; font-size: .9rem; }
 .chip { background: var(--panel-2); color: var(--muted); border: 1px solid var(--line); white-space: nowrap; }

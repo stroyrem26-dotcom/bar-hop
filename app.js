@@ -12,6 +12,7 @@ const byId = (id) => document.getElementById(id);
 const catalog = {
   bars: [],
   category: "",
+  okrug: "",
   view: "catalog",
   selected: null,
   favorites: new Set(),
@@ -29,6 +30,29 @@ try {
 
 function normalize(value) {
   return value.toLocaleLowerCase("ru").replaceAll("ё", "е").trim();
+}
+
+const districtsByOkrug = {
+  "ЦАО": "Арбат|Басманный|Замоскворечье|Красносельский|Мещанский|Пресненский|Таганский|Тверской|Хамовники|Якиманка",
+  "САО": "Аэропорт|Беговой|Бескудниковский|Войковский|Восточное Дегунино|Головинский|Дмитровский|Западное Дегунино|Коптево|Левобережный|Молжаниновский|Савёловский|Сокол|Тимирязевский|Ховрино|Хорошёвский",
+  "СВАО": "Алексеевский|Алтуфьевский|Бабушкинский|Бибирево|Бутырский|Лианозово|Лосиноостровский|Марфино|Марьина Роща|Останкинский|Отрадное|Ростокино|Свиблово|Северный|Северное Медведково|Южное Медведково|Ярославский",
+  "ВАО": "Богородское|Вешняки|Восточный|Восточное Измайлово|Гольяново|Ивановское|Измайлово|Косино-Ухтомский|Метрогородок|Новогиреево|Новокосино|Перово|Преображенское|Северное Измайлово|Соколиная Гора|Сокольники",
+  "ЮВАО": "Выхино-Жулебино|Капотня|Кузьминки|Лефортово|Люблино|Марьино|Некрасовка|Нижегородский|Печатники|Рязанский|Текстильщики|Южнопортовый",
+  "ЮАО": "Бирюлёво Восточное|Бирюлёво Западное|Братеево|Даниловский|Донской|Зябликово|Москворечье-Сабурово|Нагатинский Затон|Нагатино-Садовники|Нагорный|Орехово-Борисово Северное|Орехово-Борисово Южное|Царицыно|Чертаново Северное|Чертаново Центральное|Чертаново Южное",
+  "ЮЗАО": "Академический|Гагаринский|Зюзино|Коньково|Котловка|Ломоносовский|Обручевский|Северное Бутово|Тёплый Стан|Черёмушки|Южное Бутово|Ясенево",
+  "ЗАО": "Внуково|Дорогомилово|Крылатское|Кунцево|Можайский|Ново-Переделкино|Очаково-Матвеевское|Проспект Вернадского|Раменки|Солнцево|Тропарёво-Никулино|Филёвский Парк|Фили-Давыдково",
+  "СЗАО": "Куркино|Митино|Покровское-Стрешнево|Северное Тушино|Строгино|Хорошёво-Мнёвники|Щукино|Южное Тушино",
+  "ЗелАО": "Крюково|Матушкино|Савёлки|Силино|Старое Крюково|Зеленоград",
+  "НАО": "Коммунарка|Филимонковский|Внуковское|Воскресенское|Десёновское|Кокошкино|Марушкинское|Московский|Мосрентген|Рязановское|Сосенское",
+  "ТАО": "Троицк|Краснопахорский|Вороново|Щербинка|Бекасово",
+};
+
+const okrugByDistrict = new Map(Object.entries(districtsByOkrug).flatMap(([okrug, districts]) =>
+  [okrug, ...districts.split("|")].map((district) => [normalize(district), okrug]),
+));
+
+function barOkrug(bar) {
+  return okrugByDistrict.get(normalize(bar.district).replace(/^район\s+/, ""));
 }
 
 function validBar(bar) {
@@ -121,13 +145,11 @@ async function loadCatalog() {
 }
 
 function visibleBars() {
-  const words = normalize(byId("query").value).split(/\s+/).filter(Boolean);
-  return catalog.bars.filter((bar) => {
-    const text = normalize([bar.name, bar.district, bar.address, ...bar.categories, bar.summary].join(" "));
-    return words.every((word) => text.includes(word))
-      && (!catalog.category || bar.categories.includes(catalog.category))
-      && (catalog.view !== "favorites" || catalog.favorites.has(bar.id));
-  });
+  return catalog.bars.filter((bar) =>
+    (!catalog.okrug || barOkrug(bar) === catalog.okrug)
+    && (!catalog.category || bar.categories.includes(catalog.category))
+    && (catalog.view !== "favorites" || catalog.favorites.has(bar.id)),
+  );
 }
 
 function createChip(label, value) {
@@ -193,7 +215,7 @@ function renderCards() {
   byId("cards").replaceChildren(...bars.map(createCard));
   byId("empty").hidden = bars.length !== 0;
   byId("empty").textContent = catalog.view === "favorites" && !catalog.favorites.size
-    ? "Нажмите на сердце в карточке, чтобы сохранить бар." : "Подходящих баров пока нет. Измените запрос или категорию.";
+    ? "Нажмите на сердце в карточке, чтобы сохранить бар." : "Подходящих баров пока нет. Выберите другой округ или категорию.";
 }
 
 function switchView(view, scroll = false) {
@@ -383,7 +405,14 @@ byId("show-all").addEventListener("click", () => {
   byId("location-note").hidden = true;
   setRouteStatus("Нажмите на точку или кнопку «На карте» в карточке.");
 });
-byId("query").addEventListener("input", renderCards);
+byId("okrug").replaceChildren(
+  new Option("Все округа", ""),
+  ...Object.keys(districtsByOkrug).map((okrug) => new Option(okrug, okrug)),
+);
+byId("okrug").addEventListener("change", (event) => {
+  catalog.okrug = event.target.value;
+  renderCards();
+});
 byId("categories").addEventListener("click", (event) => {
   const button = event.target.closest("button[data-category]");
   if (!button) return;
