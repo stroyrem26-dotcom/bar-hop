@@ -141,12 +141,15 @@ async function loadCatalog() {
       // The last confirmed public export is available if the feed is offline.
     }
   }
-  catalog.bars = [...new Map((live ?? bars).filter(validBar).map((bar) => [bar.id, bar])).values()];
+  const byBarId = new Map((live ?? bars).filter(validBar).map((bar) => [
+    bar.id, { ...bar, okrug: barOkrug(bar) },
+  ]));
+  catalog.bars = [...byBarId.values()];
 }
 
 function visibleBars() {
   return catalog.bars.filter((bar) =>
-    (!catalog.okrug || barOkrug(bar) === catalog.okrug)
+    (!catalog.okrug || bar.okrug === catalog.okrug)
     && (!catalog.category || bar.categories.includes(catalog.category))
     && (catalog.view !== "favorites" || catalog.favorites.has(bar.id)),
   );
@@ -189,7 +192,7 @@ function createCard(bar) {
   card.toggleAttribute("data-selected", catalog.selected?.id === bar.id);
   const query = (selector) => card.querySelector(selector);
   query(".name").textContent = bar.name;
-  query(".address").textContent = bar.address + " · " + bar.district;
+  query(".address").textContent = [bar.address, bar.district, bar.okrug].filter(Boolean).join(" · ");
   query(".summary").textContent = bar.summary;
   query(".read").href = bar.post;
   query(".locate").addEventListener("click", () => selectBar(bar, true));
