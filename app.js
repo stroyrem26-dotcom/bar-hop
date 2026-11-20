@@ -41,15 +41,57 @@ function validBar(bar) {
 }
 
 async function fetchJson(url, timeout = 7000) {
+  return request(url, (response) => response.json(), timeout);
+}
+
+async function request(url, decode, timeout) {
   const controller = new AbortController();
   const deadline = setTimeout(() => controller.abort(), timeout);
   try {
     const response = await fetch(url, { signal: controller.signal, credentials: "omit" });
     if (!response.ok) throw new Error("HTTP " + response.status);
-    return await response.json();
+    return await decode(response);
   } finally {
     clearTimeout(deadline);
   }
+}
+
+function decodeCsv(input) {
+  const rows = [];
+  let row = [], cell = "", quoted = false;
+  for (let index = 0; index < input.length; index += 1) {
+    const char = input[index];
+    if (char === '"') {
+      if (quoted && input[index + 1] === '"') {
+        cell += '"';
+        index += 1;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (!quoted && char === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (!quoted && (char === "\n" || char === "\r")) {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      if (char === "\r" && input[index + 1] === "\n") index += 1;
+    } else {
+      cell += char;
+    }
+  }
+  if (quoted) throw new Error("Corrupt CSV");
+  if (row.length || cell) rows.push([...row, cell]);
+  const columns = rows.shift();
+  if (columns?.join(",") !== "id,name,district,address,categories,summary,lat,lon,post,source,telepub_id,active") {
+    throw new Error("Unexpected catalog columns");
+  }
+  return rows.filter((record) => record[11]?.toUpperCase() === "TRUE").map((record) => {
+    const [id, name, district, address, tags, summary, lat, lon, post] = record;
+    return { id, name, district, address, categories: tags.split(",").map((value) => value.trim()).filter(Boolean),
+      summary, lat: Number(lat.replace(",", ".")), lon: Number(lon.replace(",", ".")), post };
+  });
 }
 
 async function loadCatalog() {
@@ -57,7 +99,17 @@ async function loadCatalog() {
   const bars = current.bars;
   if (!Array.isArray(bars)) throw new Error("Invalid catalog");
   let live;
-  if (typeof current.feed === "string" && current.feed.startsWith("https://script.google.com/macros/s/")) {
+  if (typeof current.feed === "string" && current.feed.startsWith("https://docs.google.com/spreadsheets/d/e/")) {
+    try {
+      const url = new URL(current.feed);
+      if (url.searchParams.get("output") === "csv" && url.searchParams.get("gid")) {
+        live = decodeCsv((await request(url.href, (response) => response.text(), 4500)).replace(/^\uFEFF/, ""));
+        document.documentElement.dataset.catalogSource = "sheets";
+      }
+    } catch {
+      // The last confirmed public export is available if the feed is offline.
+    }
+  } else if (typeof current.feed === "string" && current.feed.startsWith("https://script.google.com/macros/s/")) {
     try {
       const remote = await fetchJson(current.feed, 4500);
       if (Array.isArray(remote.bars)) live = remote.bars;
