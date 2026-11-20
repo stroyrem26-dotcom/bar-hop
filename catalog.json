@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "feed": "",
+  "bars": [
+    {
+      "id": "korobok",
+      "name": "Коробок",
+      "address": "ул. Большая Дмитровка, 7/5с2",
+      "district": "Тверской",
+      "categories": [
+        "Коктейли",
+        "Камерный бар"
+      ],
+      "summary": "Коктейльный бар White Rabbit Family под «Техникумом» на Большой Дмитровке.",
+      "lat": 55.760849,
+      "lon": 37.614743,
+      "post": "https://t.me/HoppingBar/86",
+      "source": "https://korobokmoscow.ru/",
+      "telepub_id": "Б21",
+      "active": true
+    },
+    {
+      "id": "noor",
+      "name": "Noor Electro",
+      "address": "Тверская ул., 23с1",
+      "district": "Тверской",
+      "categories": [
+        "Коктейли",
+        "Музыка"
+      ],
+      "summary": "Коктейльный бар на Тверской с музыкальной программой.",
+      "lat": 55.766826,
+      "lon": 37.600945,
+      "post": "https://t.me/HoppingBar/88",
+      "source": "https://noorbar.com/contacts",
+      "telepub_id": "Б22",
+      "active": true
+    },
+    {
+      "id": "chainaya",
+      "name": "Chainaya Tea & Cocktails",
+      "address": "1-я Тверская-Ямская ул., 29с1",
+      "district": "Тверской",
+      "categories": [
+        "Коктейли",
+        "Камерный бар",
+        "Кухня"
+      ],
+      "summary": "Камерный бар с коктейлями и блюдами китайской кухни. Для входа нужна бронь.",
+      "lat": 55.776001,
+      "lon": 37.585188,
+      "post": "https://t.me/HoppingBar/90",
+      "source": "https://chainaya.org/",
+      "telepub_id": "Б23",
+      "active": true
+    },
+    {
+      "id": "veladora",
+      "name": "Veladora",
+      "address": "ул. Покровка, 2/1с1",
+      "district": "Басманный",
+      "categories": [
+        "Коктейли",
+        "Кухня"
+      ],
+      "summary": "Мексиканский бар. Вход через арку со Старосадского переулка, затем налево и направо до конца двора.",
+      "lat": 55.757947,
+      "lon": 37.639114,
+      "post": "https://t.me/HoppingBar/92",
+      "source": "https://veladora.ru/",
+      "telepub_id": "Б24",
+      "active": true
+    },
+    {
+      "id": "voda",
+      "name": "Вода",
+      "address": "ул. Петровка, 17с7",
+      "district": "Тверской",
+      "categories": [
+        "Коктейли",
+        "Камерный бар"
+      ],
+      "summary": "Небольшой коктейльный бар во дворе на Петровке.",
+      "lat": 55.764752,
+      "lon": 37.615661,
+      "post": "https://t.me/HoppingBar/94",
+      "source": "https://yandex.com/maps/org/voda/199059190310/",
+      "telepub_id": "Б25",
+      "active": true
+    },
+    {
+      "id": "dff",
+      "name": "Restaurant by Deep Fried Friends",
+      "address": "Яузская ул., 10/2с4",
+      "district": "Таганский",
+      "categories": [
+        "Коктейли",
+        "Кухня",
+        "Музыка"
+      ],
+      "summary": "Ресторан с коктейльной картой, верандой и программой музыкальных событий.",
+      "lat": 55.74637,
+      "lon": 37.646938,
+      "post": "https://t.me/HoppingBar/96",
+      "source": "https://www.deepfriedfriends.ru/restaurant",
+      "telepub_id": "Б26",
+      "active": true
+    },
+    {
+      "id": "strelka",
+      "name": "Стрелка",
+      "address": "Берсеневская наб., 14с5",
+      "district": "Якиманка",
+      "categories": [
+        "Коктейли",
+        "Кухня",
+        "Терраса"
+      ],
+      "summary": "Бар на Берсеневской набережной с террасой, коктейлями и сезонной кухней.",
+      "lat": 55.742565,
+      "lon": 37.609263,
+      "post": "https://t.me/HoppingBar/98",
+      "source": "https://barstrelka.com/bar",
+      "telepub_id": "Б27",
+      "active": true
+    },
+    {
+      "id": "silencio",
+      "name": "Silencio",
+      "address": "ул. Солянка, 1/2с1",
+      "district": "Басманный",
+      "categories": [
+        "Коктейли",
+        "Камерный бар"
+      ],
+      "summary": "Камерный бар на Солянке, специализирующийся на абсенте и коктейлях на его основе.",
+      "lat": 55.754032,
+      "lon": 37.637524,
+      "post": "https://t.me/HoppingBar/102",
+      "source": "https://yandex.com/maps/org/silencio/222743437241/",
+      "telepub_id": "Б28",
+      "active": true
+    },
+    {
+      "id": "segreto",
+      "name": "Segreto Bar",
+      "address": "Благовещенский пер., 10с2",
+      "district": "Тверской",
+      "categories": [
+        "Коктейли",
+        "Камерный бар"
+      ],
+      "summary": "Камерный коктейльный бар с отсылками к итальянской барной традиции.",
+      "lat": 55.767499,
+      "lon": 37.598591,
+      "post": "https://t.me/HoppingBar/104",
+      "source": "https://segretobar.ru/segreto-bar",
+      "telepub_id": "Б29",
+      "active": true
+    }
+  ]
+}
