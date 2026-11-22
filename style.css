@@ -76,7 +76,10 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
 
 .map-column { position: sticky; top: 14px; }
 .map-panel { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); }
-.map-heading { padding: 12px 16px; }
+.map-heading { flex-wrap: wrap; gap: 6px 12px; padding: 12px 16px; }
+.map-heading .eyebrow, .map-heading h2 { white-space: nowrap; }
+.map-heading .map-tools { display: flex; flex-wrap: nowrap; gap: 6px; margin-inline-start: auto; }
+.map-heading .map-tools button { min-height: 36px; padding: 6px 8px; white-space: nowrap; }
 #map { height: min(50dvh, 458px); min-height: 300px; background: #272623; isolation: isolate; }
 #map .leaflet-tile-pane { filter: saturate(.58) brightness(.84); }
 #map .leaflet-container, .leaflet-popup-content { font-family: Inter, system-ui, sans-serif; }
@@ -111,7 +114,7 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
   .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
 }
 
-.reactions, .map-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.reactions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
 .icon-definitions { position: absolute; }
 .dislike-icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
 .dislike { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: #0b0b0b; color: var(--muted); width: 36px; height: 36px; padding: 0; font-size: 1.15rem; }
