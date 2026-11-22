@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>WSH BAR DEMO · Электронное меню</title>
+<style>
+:root{color-scheme:dark;--bg:#080808;--panel:#171614;--line:#302a20;--text:#f5f2eb;--muted:#b0aaa0;--lime:#ffe0a0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}main,header>div{max-width:980px;margin:auto;padding:0 20px}header{border-bottom:1px solid var(--line)}header>div{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:70px;flex-wrap:wrap;padding-block:10px}a.brand{display:inline-flex;gap:9px;align-items:center;color:inherit;text-decoration:none;font-weight:720}nav,.actions{display:flex;gap:8px;flex-wrap:wrap}button,select,input{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 13px}button{cursor:pointer;min-height:44px}button:hover,button:focus-visible{border-color:var(--lime)}button.active,.primary{background:var(--lime);color:#211b12;border-color:var(--lime);font-weight:700}button:disabled{opacity:.5;cursor:default}.hero{padding:38px 26px;margin:24px 0;border:1px solid var(--line);border-radius:20px;background:radial-gradient(ellipse at top right,#5b3c21,#241a12 53%,#14110e)}h1{font:clamp(38px,8vw,68px)/1 Georgia,serif;margin:9px 0 12px}h2,h3,p{margin:0 0 10px}.muted,small{color:var(--muted)}.tag{font-size:14px;color:var(--lime)}.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,320px);gap:20px;align-items:start}.panel,.item{background:var(--panel);border:1px solid var(--line);padding:16px;border-radius:14px}.item{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:8px 0}.name{font-weight:650}.item button{flex:none}.menu-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px}.menu-controls>*{min-width:0;width:100%}label{display:grid;gap:4px;margin-bottom:12px}input,select{width:100%;min-width:0}input[type=checkbox]{width:auto}.check{display:flex;align-items:center;gap:8px}.line{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0}.qty{display:flex;align-items:center;gap:6px}.qty button{padding:5px 10px}.notice{padding:12px 14px;background:#2d2112;border-radius:10px;margin:12px 0;color:var(--lime)}[hidden]{display:none!important}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.compact{max-width:540px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}footer{margin:28px 0;color:var(--muted);font-size:14px}hr{border:0;border-top:1px solid var(--line)}@media(max-width:690px){.layout{grid-template-columns:1fr}header>div{justify-content:center}.hero{padding:24px 18px}main{padding:0 14px}}
+</style></head><body>
+<header><div><a class="brand" href="./index.html"><img src="./wsh-mark.svg" width="32" height="32" alt=""> Бар-хоппинг</a><nav aria-label="Разделы"><button data-view="menu" class="active">Меню</button><button data-view="booking">Бронь</button><button data-view="staff">Уведомления</button></nav></div></header>
+<main>
+<div class="hero"><span class="tag">WSH BAR DEMO · ДЕМО-БАР</span><h1 id="title">Электронное меню</h1><p class="muted" id="subtitle">Выбери блюда и напитки. Номер столика можно подставить из QR.</p></div>
+<section id="menu" class="layout">
+<div><div class="menu-controls"><select id="category" aria-label="Категория"></select><input id="search" type="search" placeholder="Поиск по меню" aria-label="Поиск по меню"></div><div id="items"></div></div>
+<form class="panel" id="order"><h2>Твой заказ</h2><label>Столик<select id="table" required></select></label><a href="?table=7" id="qr" style="color:var(--lime)">Проверить ссылку для стола №7</a><hr><div id="cart"></div><label class="check"><input id="tip" type="checkbox"> Добавить 10% чаевых</label><div class="line"><span>Блюда и напитки</span><b id="subtotal"></b></div><div class="line"><span>Чаевые</span><b id="tips"></b></div><div class="line"><strong>Итого</strong><strong id="total"></strong></div><button class="primary" id="send">Отправить тестовый заказ</button><p id="order-result" role="status" class="notice" hidden></p></form>
+</section>
+<section id="booking" hidden><form class="panel compact" id="reserve"><h2>Заявка на столик</h2><p class="muted">Время московское. В демо можно проверить отправку заявки администратору.</p><div class="two"><label>Дата<input id="date" type="date" required></label><label>Время<select id="time" required></select></label></div><label>Гостей<input id="guests" type="number" value="2" min="1" max="12" required></label><button class="primary">Отправить тестовую заявку</button><p id="booking-result" role="status" class="notice" hidden></p></form></section>
+<section id="staff" hidden><h2>Уведомления персонала</h2><p class="muted">Тестовые карточки в этом браузере. Реальные сообщения в Telegram здесь не отправляются.</p><div class="cards" id="queue"></div></section>
+<footer>Меню, цены и время бронирования приведены для демонстрации. Оплата отключена.</footer>
+</main>
+<script id="catalog" type="application/json">{"Коктейли":{"Янтарный сауэр · бурбон, облепиха, лимон":690,"Чёрный бархат · ром, кофе, ваниль":720,"Грушевый негрони · джин, биттер, груша":740,"Мандариновый спритц · аперитив, мандарин, содовая":650},"Без алкоголя":{"Груша и шалфей · лимонад":430,"Вишня и копчёный чай · холодный микс":450,"Облепиха и имбирь · лимонад":420},"Закуски":{"Картофель фри с пармезаном":390,"Попкорн из креветок с соусом айоли":620,"Бриошь с пастрами и горчицей":650,"Оливки с цедрой апельсина":320,"Хумус с печёным перцем и питой":460},"Десерты":{"Шоколадный тарт с морской солью":420,"Ванильная панна-котта с вишней":390}}</script>
+<script>
+const byId = id => document.getElementById(id);
+const make = (tag, text, className) => {
+  const element = document.createElement(tag);
+  if (text !== undefined) element.textContent = text;
+  if (className) element.className = className;
+  return element;
+};
+const money = amount => Number(amount).toLocaleString('ru-RU') + ' ₽';
+const catalog = JSON.parse(byId('catalog').textContent);
+const groups = { ...catalog };
+const products = Object.entries(groups).flatMap(([category, entries]) =>
+  Object.entries(entries).map(([name, price]) => ({category, name, price})));
+const category = byId('category'), table = byId('table'), cart = new Map();
+category.add(new Option('Все категории',''));
+for (const name of Object.keys(groups)) category.add(new Option(name,name));
+category.value = '';
+table.add(new Option('Выбери номер',''));
+for (let n = 1; n <= 30; n++) table.add(new Option('Столик №' + n,n));
+const qrTable = new URLSearchParams(location.search).get('table');
+if (/^(?:[1-9]|[12][0-9]|30)$/.test(qrTable ?? '')) table.value = qrTable;
+let cards = [];
+try {
+  const saved = JSON.parse(localStorage.getItem('amber-hour-demo-cards-v1') || '[]');
+  if (Array.isArray(saved)) cards = saved;
+} catch {}
+function addCards(entries) {
+  cards = [...entries, ...cards].slice(0, 90);
+  try { localStorage.setItem('fenix-demo-cards-v1', JSON.stringify(cards)); } catch {}
+  showQueue();
+}
+function showQueue() {
+  byId('queue').replaceChildren(...cards.map(card => {
+    const item = make('article',undefined,'panel');
+    item.append(make('h3',card.role),make('p',card.heading));
+    for (const line of card.lines) item.append(make('div',line,'muted'));
+    return item;
+  }));
+  if (!cards.length) byId('queue').append(make('p','Пока нет тестовых заявок.','muted'));
+}
+function showItems() {
+  const search = byId('search').value.trim().toLocaleLowerCase('ru');
+  const items = products.filter(item => (!category.value || item.category === category.value)
+    && item.name.toLocaleLowerCase('ru').includes(search));
+  byId('items').replaceChildren(...items.map(item => {
+    const row = make('article',undefined,'item'), desc = make('div');
+    const button = make('button','Добавить');
+    button.setAttribute('aria-label','Добавить: ' + item.name);
+    button.onclick = () => setQuantity(item,(cart.get(item) || 0) + 1);
+    desc.append(make('div',item.name,'name'),make('div',money(item.price),'muted'));
+    row.append(desc,button);
+    return row;
+  }));
+  if (!items.length) byId('items').append(make('p','Подходящих позиций нет.','muted'));
+}
+function setQuantity(item, count) {
+  if (count === 0) cart.delete(item);
+  else cart.set(item,Math.min(30,count));
+  byId('order-result').hidden = true;
+  showCart();
+}
+function totals() {
+  const subtotal = [...cart].reduce((sum,[item,qty]) => sum + item.price * qty, 0);
+  const tips = byId('tip').checked ? Math.round(subtotal * .1) : 0;
+  return {subtotal,tips,total:subtotal + tips};
+}
+function showCart() {
+  byId('cart').replaceChildren();
+  if (!cart.size) byId('cart').append(make('p','Корзина пуста.','muted'));
+  for (const [item,qty] of cart) {
+    const row = make('div',undefined,'line'), controls = make('div',undefined,'qty');
+    const minus = make('button','−'), plus = make('button','+');
+    minus.type = plus.type = 'button';
+    minus.setAttribute('aria-label','Убрать: ' + item.name);
+    plus.setAttribute('aria-label','Добавить: ' + item.name);
+    minus.onclick = () => setQuantity(item,qty-1);
+    plus.onclick = () => setQuantity(item,qty+1);
+    plus.disabled = qty >= 30;
+    controls.append(minus,make('span',qty),plus);
+    row.append(make('span',item.name),controls);
+    byId('cart').append(row);
+  }
+  for (const [key,value] of Object.entries(totals())) byId(key).textContent = money(value);
+  byId('send').disabled = !cart.size;
+}
+function notice(id,text) {
+  byId(id).hidden = false;
+  byId(id).textContent = text;
+}
+function reference() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(4)), byte => byte.toString(16).padStart(2,'0')).join('').toUpperCase();
+}
+byId('order').onsubmit = event => {
+  event.preventDefault();
+  if (!cart.size || !table.value) return;
+  const heading = 'Заказ ' + reference() + ' · стол №' + table.value;
+  const lines = [...cart].map(([item,qty]) => ({bar:['Коктейли','Без алкоголя'].includes(item.category),text:item.name + ' × ' + qty + ' · ' + money(item.price*qty)}));
+  const sum = totals();
+  const deliveries = [{role:'Официант',heading,lines:[...lines.map(line => line.text),'Заказ ' + money(sum.subtotal) + ' · чаевые ' + money(sum.tips),'Итого ' + money(sum.total)]}];
+  for (const [role,isBar] of [['Бар',true],['Кухня',false]]) {
+    const stationLines = lines.filter(line => line.bar === isBar).map(line => line.text);
+    if (stationLines.length) deliveries.push({role,heading,lines:stationLines});
+  }
+  addCards(deliveries);
+  cart.clear();
+  byId('tip').checked = false;
+  showCart();
+  notice('order-result',heading + '. Созданы карточки: ' + deliveries.map(entry => entry.role.toLowerCase()).join(', ') + '.');
+};
+const dayTime = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Moscow',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+const now = () => dayTime.format(new Date()).split(' ');
+const date = byId('date'), time = byId('time');
+function showTimes() {
+  const [today,current] = now();
+  date.min = today;
+  const previous = time.value;
+  time.replaceChildren(new Option('Выбери время',''));
+  for (let minutes = 12*60; minutes <= 22*60; minutes += 30) {
+    const slot = String(Math.floor(minutes/60)).padStart(2,'0') + ':' + String(minutes%60).padStart(2,'0');
+    if (date.value > today || (date.value === today && slot > current)) time.add(new Option(slot,slot));
+  }
+  if ([...time.options].some(option => option.value === previous)) time.value = previous;
+}
+date.value = now()[0];
+date.oninput = showTimes;
+byId('reserve').onsubmit = event => {
+  event.preventDefault();
+  showTimes();
+  if (!event.currentTarget.reportValidity()) return;
+  const guests = Number(byId('guests').value);
+  const heading = 'Заявка ' + reference();
+  addCards([{role:'Администратор',heading,lines:[date.value.split('-').reverse().join('.') + ' · ' + time.value + ' (МСК)','Гостей: ' + guests,'Ожидает подтверждения']}]);
+  notice('booking-result',heading + ' создана в демо. Ожидает подтверждения.');
+};
+const views = {
+  menu:['Электронное меню','Выбери блюда и напитки. Номер столика можно подставить из QR.'],
+  booking:['Забронировать столик','Выбери дату, время и число гостей.'],
+  staff:['Заказы и бронь','Проверь маршрутизацию тестовых заявок.']
+};
+function showView(view) {
+  for (const name of Object.keys(views)) byId(name).hidden = name !== view;
+  for (const button of document.querySelectorAll('[data-view]')) {
+    const selected = button.dataset.view === view;
+    button.classList.toggle('active',selected);
+    button.setAttribute('aria-pressed',selected);
+  }
+  [byId('title').textContent,byId('subtitle').textContent] = views[view];
+  if (view === 'booking') showTimes();
+}
+for (const button of document.querySelectorAll('[data-view]')) button.onclick = () => showView(button.dataset.view);
+category.onchange = showItems;
+byId('search').oninput = showItems;
+byId('tip').onchange = showCart;
+showItems();
+showCart();
+showQueue();
+showView(new URLSearchParams(location.search).get('view') === 'booking' ? 'booking' : 'menu');
+window.Telegram?.WebApp?.ready();
+
+</script></body></html>

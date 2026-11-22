@@ -18,6 +18,13 @@ const catalog = {
   favorites: new Set(),
   disliked: new Set(),
 };
+const demoBar = {
+  id: "wsh-demo-amber-hour",
+  name: "WSH BAR DEMO",
+  address: "Вымышленное заведение",
+  categories: ["Демо", "Коктейли"],
+  summary: "Авторские коктейли, безалкогольные миксы и закуски. Попробуйте заказ на столик или заявку на бронь.",
+};
 const mapState = { map: null, layer: null, route: null, start: null, pending: null, picking: false, lastRequest: 0, locationMarker: null, accuracyCircle: null };
 const mobile = matchMedia("(max-width: 760px)");
 const storageKey = "bar-hop-wsh-favorites-v1";
@@ -151,7 +158,7 @@ async function loadCatalog() {
 }
 
 function visibleBars() {
-  return catalog.bars.filter((bar) =>
+  return [demoBar, ...catalog.bars].filter((bar) =>
     (!catalog.okrug || bar.okrug === catalog.okrug)
     && (!catalog.category || bar.categories.includes(catalog.category))
     && (catalog.view !== "favorites" || catalog.favorites.has(bar.id))
@@ -170,7 +177,7 @@ function createChip(label, value) {
 }
 
 function renderFilters() {
-  const tags = [...new Set(catalog.bars.flatMap((bar) => bar.categories))]
+  const tags = [...new Set([demoBar, ...catalog.bars].flatMap((bar) => bar.categories))]
     .sort((left, right) => left.localeCompare(right, "ru"));
   byId("categories").replaceChildren(createChip("Все", ""), ...tags.map((tag) => createChip(tag, tag)));
 }
@@ -216,9 +223,35 @@ function createCard(bar, forMap = false) {
   query(".name").textContent = bar.name;
   query(".address").textContent = [bar.address, bar.district, bar.okrug].filter(Boolean).join(" · ");
   query(".summary").textContent = bar.summary;
-  query(".read").href = bar.post;
   query(".locate").hidden = forMap;
-  query(".locate").addEventListener("click", () => selectBar(bar, true));
+  if (bar === demoBar) {
+    card.classList.add("demo-card");
+    const openInfo = (title, description) => {
+      byId("demo-title").textContent = title;
+      byId("demo-description").textContent = description;
+      byId("demo-info").showModal();
+    };
+    const review = document.createElement("button");
+    review.type = "button";
+    review.className = "secondary";
+    review.textContent = "Обзор в Telegram";
+    review.onclick = () => openInfo("Обзор в Telegram", "WSH BAR DEMO — демонстрационный бар. Обзор в канал не публиковался.");
+    query(".read").replaceWith(review);
+    query(".locate").onclick = () => openInfo("На карте", "У демонстрационного бара нет адреса. На карте показаны реальные заведения гида.");
+    for (const [label, url, style] of [
+      ["Электронное меню", "./menu.html?table=7", "primary"],
+      ["Забронировать", "./menu.html?view=booking", "secondary"],
+    ]) {
+      const link = document.createElement("a");
+      link.className = style;
+      link.textContent = label;
+      link.href = url;
+      query(".card-actions").append(link);
+    }
+  } else {
+    query(".read").href = bar.post;
+    query(".locate").addEventListener("click", () => selectBar(bar, true));
+  }
   query(".tags").replaceChildren(...bar.categories.slice(0, 2).map((tag) => {
     const label = document.createElement("span");
     label.textContent = tag;
@@ -235,7 +268,7 @@ function renderCards() {
   byId("list-title").textContent = ({ favorites: "Избранное", disliked: "Дизлайк" }[catalog.view] ?? "Места на вечер");
   const form = new Intl.PluralRules("ru").select(bars.length);
   byId("count").textContent = bars.length + " " + ({ one: "место", few: "места", many: "мест" }[form] ?? "места");
-  byId("cards").replaceChildren(...bars.map(createCard));
+  byId("cards").replaceChildren(...bars.map((bar) => createCard(bar)));
   byId("empty").hidden = bars.length !== 0;
   byId("empty").textContent = catalog.view === "favorites" && !catalog.favorites.size
     ? "Нажмите на сердце в карточке, чтобы сохранить бар." : catalog.view === "disliked" && !catalog.disliked.size
