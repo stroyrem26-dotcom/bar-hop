@@ -110,3 +110,18 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
   .footer { gap: 9px; padding-top: 19px; }
   .chips { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; }
 }
+
+.reactions, .map-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.dislike { border: 1px solid var(--line); border-radius: 50%; background: #0b0b0b; color: var(--ivory); width: 36px; height: 36px; padding: 0; font-size: 1rem; filter: grayscale(1); }
+.dislike[aria-pressed="true"] { border-color: #e78676; background: #371e1b; filter: none; }
+.map-pin.is-favorite { background: #42272a; color: #ffaaa0; border-color: #ffaaa0; }
+.map-pin.is-disliked { background: #242731; border-color: #b8bcc9; font-size: 13px; }
+.map-pin.is-active { outline: 2px solid var(--ivory); outline-offset: 2px; }
+.user-pin { background: #2d85ff; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 1px 7px #174579; }
+#position-status { padding: 0 16px; }
+#position-status:empty, .map-card:empty { display: none; }
+.map-card { margin-top: 14px; }
+@media (max-width: 380px) {
+  .tabs { gap: 3px; padding-inline: 5px; }
+  .tabs button { min-width: 0; padding-inline: 2px; font-size: .72rem; }
+}

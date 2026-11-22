@@ -16,16 +16,19 @@ const catalog = {
   view: "catalog",
   selected: null,
   favorites: new Set(),
+  disliked: new Set(),
 };
-const mapState = { map: null, layer: null, route: null, start: null, pending: null, picking: false, lastRequest: 0 };
+const mapState = { map: null, layer: null, route: null, start: null, pending: null, picking: false, lastRequest: 0, locationMarker: null, accuracyCircle: null };
 const mobile = matchMedia("(max-width: 760px)");
 const storageKey = "bar-hop-wsh-favorites-v1";
 
-try {
-  const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
-  if (Array.isArray(saved)) catalog.favorites = new Set(saved.filter((id) => typeof id === "string"));
-} catch {
-  // Browser storage is optional in Telegram's in-app browser.
+for (const [name, key] of [["favorites", storageKey], ["disliked", "bar-hop-wsh-disliked-v1"]]) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) ?? "[]");
+    if (Array.isArray(saved)) catalog[name] = new Set(saved.filter((id) => typeof id === "string"));
+  } catch {
+    // Browser storage is optional in Telegram's in-app browser.
+  }
 }
 
 function normalize(value) {
@@ -151,7 +154,8 @@ function visibleBars() {
   return catalog.bars.filter((bar) =>
     (!catalog.okrug || bar.okrug === catalog.okrug)
     && (!catalog.category || bar.categories.includes(catalog.category))
-    && (catalog.view !== "favorites" || catalog.favorites.has(bar.id)),
+    && (catalog.view !== "favorites" || catalog.favorites.has(bar.id))
+    && (catalog.view !== "disliked" || catalog.disliked.has(bar.id)),
   );
 }
 
@@ -171,22 +175,40 @@ function renderFilters() {
   byId("categories").replaceChildren(createChip("Все", ""), ...tags.map((tag) => createChip(tag, tag)));
 }
 
-function setFavorite(id, button) {
-  const add = !catalog.favorites.has(id);
-  if (add) catalog.favorites.add(id);
-  else catalog.favorites.delete(id);
-  try { localStorage.setItem(storageKey, JSON.stringify([...catalog.favorites])); } catch {}
-  if (catalog.view === "favorites" && !add) {
-    renderCards();
-    document.querySelector('[data-tab="favorites"]').focus();
-    return;
-  }
-  button.setAttribute("aria-pressed", String(add));
-  button.textContent = add ? "♥" : "♡";
-  button.setAttribute("aria-label", add ? "Убрать из избранного" : "Добавить в избранное");
+function syncReactions(card, id) {
+  const favorite = card.querySelector(".heart");
+  const disliked = card.querySelector(".dislike");
+  const liked = catalog.favorites.has(id);
+  const dislikedBar = catalog.disliked.has(id);
+  favorite.textContent = liked ? "♥" : "♡";
+  favorite.setAttribute("aria-pressed", String(liked));
+  favorite.setAttribute("aria-label", liked ? "Убрать из избранного" : "Добавить в избранное");
+  disliked.setAttribute("aria-pressed", String(dislikedBar));
+  disliked.setAttribute("aria-label", dislikedBar ? "Снять отметку «Не понравился»" : "Отметить «Не понравился»");
 }
 
-function createCard(bar) {
+function toggleReaction(id, kind) {
+  const selected = catalog[kind];
+  const other = kind === "favorites" ? catalog.disliked : catalog.favorites;
+  if (!selected.delete(id)) {
+    selected.add(id);
+    other.delete(id);
+  }
+  try {
+    localStorage.setItem(storageKey, JSON.stringify([...catalog.favorites]));
+    localStorage.setItem("bar-hop-wsh-disliked-v1", JSON.stringify([...catalog.disliked]));
+  } catch {}
+  if ((catalog.view === "favorites" || catalog.view === "disliked") && !catalog[catalog.view].has(id)) {
+    renderCards();
+    document.querySelector(`[data-tab="${catalog.view}"]`).focus();
+  }
+  document.querySelectorAll(".card").forEach((card) => {
+    if (card.dataset.id === id) syncReactions(card, id);
+  });
+  renderPins();
+}
+
+function createCard(bar, forMap = false) {
   const card = byId("card-template").content.firstElementChild.cloneNode(true);
   card.dataset.id = bar.id;
   card.toggleAttribute("data-selected", catalog.selected?.id === bar.id);
@@ -195,30 +217,29 @@ function createCard(bar) {
   query(".address").textContent = [bar.address, bar.district, bar.okrug].filter(Boolean).join(" · ");
   query(".summary").textContent = bar.summary;
   query(".read").href = bar.post;
+  query(".locate").hidden = forMap;
   query(".locate").addEventListener("click", () => selectBar(bar, true));
   query(".tags").replaceChildren(...bar.categories.slice(0, 2).map((tag) => {
     const label = document.createElement("span");
     label.textContent = tag;
     return label;
   }));
-  const favorite = query(".heart");
-  const selected = catalog.favorites.has(bar.id);
-  favorite.textContent = selected ? "♥" : "♡";
-  favorite.setAttribute("aria-pressed", String(selected));
-  favorite.setAttribute("aria-label", selected ? "Убрать из избранного" : "Добавить в избранное");
-  favorite.addEventListener("click", () => setFavorite(bar.id, favorite));
+  syncReactions(card, bar.id);
+  query(".heart").addEventListener("click", () => toggleReaction(bar.id, "favorites"));
+  query(".dislike").addEventListener("click", () => toggleReaction(bar.id, "disliked"));
   return card;
 }
 
 function renderCards() {
   const bars = visibleBars();
-  byId("list-title").textContent = catalog.view === "favorites" ? "Избранное" : "Места на вечер";
+  byId("list-title").textContent = ({ favorites: "Избранное", disliked: "Не понравились" }[catalog.view] ?? "Места на вечер");
   const form = new Intl.PluralRules("ru").select(bars.length);
   byId("count").textContent = bars.length + " " + ({ one: "место", few: "места", many: "мест" }[form] ?? "места");
   byId("cards").replaceChildren(...bars.map(createCard));
   byId("empty").hidden = bars.length !== 0;
   byId("empty").textContent = catalog.view === "favorites" && !catalog.favorites.size
-    ? "Нажмите на сердце в карточке, чтобы сохранить бар." : "Подходящих баров пока нет. Выберите другой округ или категорию.";
+    ? "Нажмите на сердце в карточке, чтобы сохранить бар." : catalog.view === "disliked" && !catalog.disliked.size
+    ? "Нажмите 👎 в карточке, чтобы отметить бар." : "Подходящих баров пока нет. Выберите другой округ или категорию.";
 }
 
 function switchView(view, scroll = false) {
@@ -276,13 +297,17 @@ function renderPins() {
     for (const [index, bar] of group.entries()) {
       const selected = catalog.selected?.id === bar.id;
       const offset = group.length > 1 ? (index - (group.length - 1) / 2) * .00023 : 0;
+      const favorite = catalog.favorites.has(bar.id);
+      const disliked = catalog.disliked.has(bar.id);
+      const reaction = favorite ? " is-favorite" : disliked ? " is-disliked" : "";
+      const symbol = favorite ? "♥" : disliked ? "👎" : "◆";
       const icon = L.divIcon({
-        className: "map-pin" + (selected ? " is-active" : ""),
-        html: '<span aria-hidden="true">◆</span>', iconSize: [27, 27],
+        className: "map-pin" + reaction + (selected ? " is-active" : ""),
+        html: `<span aria-hidden="true">${symbol}</span>`, iconSize: [27, 27],
       });
       const tooltip = document.createElement("span");
-      tooltip.textContent = bar.name;
-      L.marker([bar.lat, bar.lon + offset], { title: bar.name, icon, zIndexOffset: selected ? 100 : 0 })
+      tooltip.textContent = bar.name + (favorite ? " · Избранное" : disliked ? " · Не понравился" : "");
+      L.marker([bar.lat, bar.lon + offset], { title: tooltip.textContent, alt: tooltip.textContent, icon, zIndexOffset: selected ? 100 : 0 })
         .bindTooltip(tooltip).on("click", () => selectBar(bar, false)).addTo(mapState.layer);
     }
   }
@@ -327,6 +352,7 @@ function selectBar(bar, openMap) {
   byId("destination").textContent = bar.name;
   byId("route-actions").hidden = false;
   byId("location-note").hidden = false;
+  byId("map-card").replaceChildren(createCard(bar, true));
   byId("external-map").href = externalRoute(bar);
   byId("pick-origin").disabled = !mapState.map;
   byId("use-location").disabled = !mapState.map;
@@ -377,19 +403,59 @@ async function routeFrom(start) {
   }
 }
 
-byId("use-location").addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    setRouteStatus("Геолокация недоступна. Выберите старт на карте.");
+function locateUser(buildRoute) {
+  ensureMap();
+  const status = byId("position-status");
+  if (!mapState.map) {
+    status.textContent = "Карта недоступна.";
     return;
   }
+  const selected = catalog.selected?.id;
+  status.textContent = "Определяем местоположение…";
+  const failed = () => {
+    status.textContent = "Геопозиция недоступна. Проверьте разрешение на геолокацию.";
+    if (buildRoute && catalog.selected?.id === selected) setRouteStatus("Выберите старт на карте.");
+  };
+  const show = (coords) => {
+    const point = [coords.latitude, coords.longitude];
+    if (!point.every(Number.isFinite)) return failed();
+    mapState.locationMarker?.remove();
+    mapState.accuracyCircle?.remove();
+    mapState.locationMarker = L.marker(point, {
+      title: "Вы здесь", alt: "Вы здесь", zIndexOffset: 200,
+      icon: L.divIcon({ className: "user-pin", iconSize: [17, 17] }),
+    }).addTo(mapState.map).bindTooltip("Вы здесь");
+    const radius = coords.accuracy ?? coords.horizontal_accuracy;
+    if (Number.isFinite(radius) && radius > 0) {
+      mapState.accuracyCircle = L.circle(point, {
+        radius, color: "#4296ff", opacity: .65, fillOpacity: .13, weight: 1, interactive: false,
+      }).addTo(mapState.map);
+    }
+    status.textContent = "Синяя точка — ваше местоположение.";
+    if (buildRoute && catalog.selected?.id === selected) {
+      void routeFrom(point);
+    } else {
+      mapState.map.setView(point, 15);
+    }
+  };
+  const browserLocation = () => {
+    if (!navigator.geolocation) return failed();
+    navigator.geolocation.getCurrentPosition(({ coords }) => show(coords), failed, {
+      enableHighAccuracy: false, timeout: 8000, maximumAge: 20000,
+    });
+  };
+  const manager = telegram?.initData && telegram.isVersionAtLeast?.("8.0") && telegram.LocationManager;
+  if (!manager) return browserLocation();
+  manager.init(() => {
+    if (!manager.isLocationAvailable) return browserLocation();
+    manager.getLocation((coords) => coords ? show(coords) : failed());
+  });
+}
+
+byId("my-location").addEventListener("click", () => locateUser(false));
+byId("use-location").addEventListener("click", () => {
   setPicking(false);
-  const id = catalog.selected?.id;
-  setRouteStatus("Определяем ваше местоположение…");
-  navigator.geolocation.getCurrentPosition(({ coords }) => {
-    if (catalog.selected?.id === id) void routeFrom([coords.latitude, coords.longitude]);
-  }, () => {
-    if (catalog.selected?.id === id) setRouteStatus("Не удалось получить геопозицию. Выберите старт на карте.");
-  }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 20000 });
+  locateUser(true);
 });
 
 byId("pick-origin").addEventListener("click", () => {
@@ -406,6 +472,7 @@ byId("show-all").addEventListener("click", () => {
   byId("destination").textContent = "Выберите бар";
   byId("route-actions").hidden = true;
   byId("location-note").hidden = true;
+  byId("map-card").replaceChildren();
   setRouteStatus("Нажмите на точку или кнопку «На карте» в карточке.");
 });
 byId("okrug").replaceChildren(
