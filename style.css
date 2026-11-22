@@ -66,7 +66,7 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
 .name { font-weight: 740; font-size: 1.3rem; margin-top: 5px; }
 .address { margin-top: 3px; color: var(--muted); font-size: .875rem; }
 .summary { margin: 10px 0 13px; }
-.card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.card-actions { display: flex; align-items: center; gap: clamp(3px, 1.35vw, 8px); }
 .read { padding-left: 0; color: var(--gold-light); font-weight: 650; }
 .read:hover, .quiet:hover { text-decoration: underline; }
 .secondary { border: 1px solid #624b2c; color: var(--gold-light); background: #211b12; }
@@ -138,3 +138,6 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
 .demo-info { color: var(--ivory); background: var(--panel); border: 1px solid var(--line); border-radius: 15px; max-width: min(420px, calc(100% - 32px)); padding: 22px; }
 .demo-info::backdrop { background: #000a; }
 .demo-info p { margin-block: 10px 18px; color: var(--muted); }
+
+.card-actions > :not([hidden]) { justify-content: center; white-space: nowrap; }
+.demo-card .card-actions > :not([hidden]) { padding-inline: clamp(4px, 1.8vw, 12px); font-size: clamp(.75rem, 3.75vw, .9rem); }

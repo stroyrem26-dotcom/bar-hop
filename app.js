@@ -234,13 +234,13 @@ function createCard(bar, forMap = false) {
     const review = document.createElement("button");
     review.type = "button";
     review.className = "secondary";
-    review.textContent = "Обзор в Telegram";
-    review.onclick = () => openInfo("Обзор в Telegram", "WSH BAR DEMO — демонстрационный бар. Обзор в канал не публиковался.");
+    review.textContent = "О баре";
+    review.onclick = () => openInfo("О баре", "WSH BAR DEMO — демонстрационный бар. Обзор в канал не публиковался.");
     query(".read").replaceWith(review);
     query(".locate").onclick = () => openInfo("На карте", "У демонстрационного бара нет адреса. На карте показаны реальные заведения гида.");
     for (const [label, url, style] of [
-      ["Электронное меню", "./menu.html?table=7", "primary"],
-      ["Забронировать", "./menu.html?view=booking", "secondary"],
+      ["Меню", "./menu.html?table=7", "primary"],
+      ["Бронь", "./menu.html?view=booking", "secondary"],
     ]) {
       const link = document.createElement("a");
       link.className = style;
