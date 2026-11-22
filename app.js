@@ -184,7 +184,7 @@ function syncReactions(card, id) {
   favorite.setAttribute("aria-pressed", String(liked));
   favorite.setAttribute("aria-label", liked ? "Убрать из избранного" : "Добавить в избранное");
   disliked.setAttribute("aria-pressed", String(dislikedBar));
-  disliked.setAttribute("aria-label", dislikedBar ? "Снять отметку «Не понравился»" : "Отметить «Не понравился»");
+  disliked.setAttribute("aria-label", dislikedBar ? "Снять отметку «Дизлайк»" : "Отметить «Дизлайк»");
 }
 
 function toggleReaction(id, kind) {
@@ -232,14 +232,14 @@ function createCard(bar, forMap = false) {
 
 function renderCards() {
   const bars = visibleBars();
-  byId("list-title").textContent = ({ favorites: "Избранное", disliked: "Не понравились" }[catalog.view] ?? "Места на вечер");
+  byId("list-title").textContent = ({ favorites: "Избранное", disliked: "Дизлайк" }[catalog.view] ?? "Места на вечер");
   const form = new Intl.PluralRules("ru").select(bars.length);
   byId("count").textContent = bars.length + " " + ({ one: "место", few: "места", many: "мест" }[form] ?? "места");
   byId("cards").replaceChildren(...bars.map(createCard));
   byId("empty").hidden = bars.length !== 0;
   byId("empty").textContent = catalog.view === "favorites" && !catalog.favorites.size
     ? "Нажмите на сердце в карточке, чтобы сохранить бар." : catalog.view === "disliked" && !catalog.disliked.size
-    ? "Нажмите 👎 в карточке, чтобы отметить бар." : "Подходящих баров пока нет. Выберите другой округ или категорию.";
+    ? "Нажмите кнопку «Дизлайк» в карточке, чтобы отметить бар." : "Подходящих баров пока нет. Выберите другой округ или категорию.";
 }
 
 function switchView(view, scroll = false) {
@@ -300,13 +300,13 @@ function renderPins() {
       const favorite = catalog.favorites.has(bar.id);
       const disliked = catalog.disliked.has(bar.id);
       const reaction = favorite ? " is-favorite" : disliked ? " is-disliked" : "";
-      const symbol = favorite ? "♥" : disliked ? "👎" : "◆";
+      const symbol = favorite ? "♥" : disliked ? '<svg class="dislike-icon" aria-hidden="true" focusable="false"><use href="#icon-dislike"></use></svg>' : "◆";
       const icon = L.divIcon({
         className: "map-pin" + reaction + (selected ? " is-active" : ""),
         html: `<span aria-hidden="true">${symbol}</span>`, iconSize: [27, 27],
       });
       const tooltip = document.createElement("span");
-      tooltip.textContent = bar.name + (favorite ? " · Избранное" : disliked ? " · Не понравился" : "");
+      tooltip.textContent = bar.name + (favorite ? " · Избранное" : disliked ? " · Дизлайк" : "");
       L.marker([bar.lat, bar.lon + offset], { title: tooltip.textContent, alt: tooltip.textContent, icon, zIndexOffset: selected ? 100 : 0 })
         .bindTooltip(tooltip).on("click", () => selectBar(bar, false)).addTo(mapState.layer);
     }

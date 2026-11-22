@@ -8,12 +8,17 @@
   <title>Бар-хоппинг — гид по барам Москвы</title>
   <link rel="icon" href="./wsh-mark.svg">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-  <link rel="stylesheet" href="./style.css?v=map-reactions">
+  <link rel="stylesheet" href="./style.css?v=wsh-dislike">
   <script src="https://telegram.org/js/telegram-web-app.js" defer></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="" defer></script>
-  <script src="./app.js?v=map-reactions" defer></script>
+  <script src="./app.js?v=wsh-dislike" defer></script>
 </head>
 <body>
+  <svg width="0" height="0" aria-hidden="true" class="icon-definitions">
+    <symbol id="icon-dislike" viewBox="0 0 24 24">
+      <path d="M7 14V3m0 11 4 7a3 3 0 0 0 3-3v-4h5.65a2 2 0 0 0 1.98-2.29l-1.1-7A2 2 0 0 0 18.55 3H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2z"/>
+    </symbol>
+  </svg>
   <header class="top">
     <div class="wrap top-row">
       <a class="wordmark" href="./">
@@ -92,7 +97,7 @@
     <button type="button" data-tab="catalog" aria-pressed="true"><span aria-hidden="true">☰</span>Каталог</button>
     <button type="button" data-tab="map" aria-pressed="false"><span aria-hidden="true">⌖</span>Карта</button>
     <button type="button" data-tab="favorites" aria-pressed="false"><span aria-hidden="true">♡</span>Избранное</button>
-    <button type="button" data-tab="disliked" aria-pressed="false"><span aria-hidden="true">👎</span>Не понравились</button>
+    <button type="button" data-tab="disliked" aria-pressed="false"><span aria-hidden="true"><svg class="dislike-icon" aria-hidden="true" focusable="false"><use href="#icon-dislike"></use></svg></span>Дизлайк</button>
   </nav>
   <template id="card-template">
     <article class="card">
@@ -100,7 +105,7 @@
         <div class="tags"></div>
         <div class="reactions">
           <button class="heart" type="button" aria-pressed="false"></button>
-          <button class="dislike" type="button" aria-pressed="false">👎</button>
+          <button class="dislike" type="button" aria-pressed="false"><svg class="dislike-icon" aria-hidden="true" focusable="false"><use href="#icon-dislike"></use></svg></button>
         </div>
       </div>
       <h3 class="name"></h3>

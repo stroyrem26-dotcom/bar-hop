@@ -112,10 +112,14 @@ h2 { font-family: Georgia, serif; font-weight: 500; font-size: clamp(1.45rem, 3v
 }
 
 .reactions, .map-tools { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-.dislike { border: 1px solid var(--line); border-radius: 50%; background: #0b0b0b; color: var(--ivory); width: 36px; height: 36px; padding: 0; font-size: 1rem; filter: grayscale(1); }
-.dislike[aria-pressed="true"] { border-color: #e78676; background: #371e1b; filter: none; }
+.icon-definitions { position: absolute; }
+.dislike-icon { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+.dislike { display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: #0b0b0b; color: var(--muted); width: 36px; height: 36px; padding: 0; font-size: 1.15rem; }
+.tabs button .dislike-icon { display: block; margin: 0 auto 4px; }
+.dislike[aria-pressed="true"] { color: var(--gold-light); border-color: var(--gold); background: #241b10; }
 .map-pin.is-favorite { background: #42272a; color: #ffaaa0; border-color: #ffaaa0; }
-.map-pin.is-disliked { background: #242731; border-color: #b8bcc9; font-size: 13px; }
+.map-pin.is-disliked { background: #25211b; border-color: #a69b88; color: #c3b9a7; font-size: 15px; }
+.map-pin .dislike-icon { display: block; }
 .map-pin.is-active { outline: 2px solid var(--ivory); outline-offset: 2px; }
 .user-pin { background: #2d85ff; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 1px 7px #174579; }
 #position-status { padding: 0 16px; }
